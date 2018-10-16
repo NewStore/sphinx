@@ -120,7 +120,7 @@ def doctree_read(app, doctree):
                 continue
             names.add(fullname)
             pagename = '_modules/' + modname.replace('.', '/')
-            onlynode = addnodes.only(expr='html')
+            onlynode = app.create_node(addnodes.only, expr='html', event_sender=__name__)
             onlynode += addnodes.pending_xref(
                 '', reftype='viewcode', refdomain='std', refexplicit=False,
                 reftarget=pagename, refid=fullname,

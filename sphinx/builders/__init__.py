@@ -52,6 +52,9 @@ if False:
 logger = logging.getLogger(__name__)
 
 
+def list_tree(node):
+    return node, list(map(list_tree, node.children))
+
 class Builder:
     """
     Builds target formats from the reST sources.
@@ -539,7 +542,12 @@ class Builder:
         doctree_filename = path.join(self.doctreedir, docname + '.doctree')
         ensuredir(path.dirname(doctree_filename))
         with open(doctree_filename, 'wb') as f:
-            pickle.dump(doctree, f, pickle.HIGHEST_PROTOCOL)
+            try:
+                pickle.dump(doctree, f, pickle.HIGHEST_PROTOCOL)
+            except TypeError as e:
+                tree = list_tree(doctree)
+                import ipdb;ipdb.set_trace()
+                raise
 
     def write(self, build_docnames, updated_docnames, method='update'):
         # type: (Iterable[unicode], Sequence[unicode], unicode) -> None

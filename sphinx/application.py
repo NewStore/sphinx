@@ -562,6 +562,29 @@ class Sphinx:
         docutils.register_node(node)
         self.registry.add_translation_handlers(node, **kwds)
 
+    def upgrade_node(self, current_version, previous_version, sender=None):
+        upgraded = self.env.app.emit_firstresult('upgrade-node', current_version, previous_version, None):
+        return self.upgrade_node(upgraded, current_version, sender=sender) or previous_version
+
+    def create_node(self, node, event_sender=None, *args, **kw):
+        """Extensible way to instantiate :py:class:`~docutils.nodes.Node`
+
+        Emits a sphinx event after instantiating the node so that
+        listener callbacks can apply transformations in the existing
+        node
+        """
+        initial_version = node(*args, **kw)
+        current_version = self.upgrade_node(initial_version, initial_version, sender=event_sender)
+        previous_version = None
+        while initial_version is not None and current_version is not None:
+            previous_version = current_version
+            current_version = self.upgrade_node(current_version, previous_version, sender=event_sender)
+            if previous_version == initial_version:
+                initial_version = None
+                break
+
+        return current_version or previous_version or initial_version
+
     def add_enumerable_node(self, node, figtype, title_getter=None, override=False, **kwds):
         # type: (nodes.Node, unicode, TitleGetter, bool, Any) -> None
         """Register a Docutils node class as a numfig target.

@@ -70,7 +70,7 @@ def doctree_read(app, doctree):
                 continue
             uris.add(uri)
 
-            onlynode = addnodes.only(expr='html')
+            onlynode = app.create_node(addnodes.only, expr='html', event_sender=__name__)
             onlynode += nodes.reference('', '', internal=False, refuri=uri)
             onlynode[0] += nodes.inline('', _('[source]'),
                                         classes=['viewcode-link'])

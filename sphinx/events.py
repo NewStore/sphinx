@@ -40,6 +40,7 @@ core_events = {
     'html-collect-pages': 'builder',
     'html-page-context': 'pagename, context, doctree or None',
     'build-finished': 'exception',
+    'upgrade-node': 'current_version, previous_version, sender',
 }  # type: Dict[unicode, unicode]
 
 

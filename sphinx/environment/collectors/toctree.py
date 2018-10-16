@@ -17,6 +17,7 @@ from sphinx.environment.collectors import EnvironmentCollector
 from sphinx.locale import __
 from sphinx.transforms import SphinxContentsFilter
 from sphinx.util import url_re, logging
+from sphinx.util.nodes import subclasses_of
 
 if False:
     # For type annotation
@@ -84,8 +85,8 @@ class TocTreeCollector(EnvironmentCollector):
                 # find all toctree nodes in this section and add them
                 # to the toc (just copying the toctree node which is then
                 # resolved in self.get_and_resolve_doctree)
-                if isinstance(sectionnode, addnodes.only):
-                    onlynode = addnodes.only(expr=sectionnode['expr'])
+                if isinstance(sectionnode, subclasses_of(addnodes.only)):
+                    onlynode = app.create_node(addnodes.only, expr=sectionnode['expr'], event_sender=self)
                     blist = build_toc(sectionnode, depth)
                     if blist:
                         onlynode += blist.children  # type: ignore
@@ -159,7 +160,7 @@ class TocTreeCollector(EnvironmentCollector):
                 elif isinstance(subnode, nodes.list_item):
                     _walk_toc(subnode, secnums, depth, titlenode)
                     titlenode = None
-                elif isinstance(subnode, addnodes.only):
+                elif isinstance(subnode, subclasses_of(addnodes.only)):
                     # at this stage we don't know yet which sections are going
                     # to be included; just include all of them, even if it leads
                     # to gaps in the numbering

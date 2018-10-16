@@ -345,6 +345,22 @@ indextypes = [
     'single', 'pair', 'double', 'triple', 'see', 'seealso',
 ]
 
+def subclasses_of(node_class, include_self=True):
+    return tuple(get_subclasses(node_class, include_self))
+
+def get_subclasses(node_class, include_self=True):
+    if include_self:
+        yield node_class
+
+    for subclass in node_class.__subclasses__():
+        yield from get_subclasses(subclass, include_self=False)
+        yield subclass
+
+def traverse_subclasses_of(node_class, document):
+    for node_class in subclasses_of(node_class):
+        for node in document.traverse(node_class):
+            yield node
+
 
 def process_index_entry(entry, targetid):
     # type: (unicode, unicode) -> List[Tuple[unicode, unicode, unicode, unicode, unicode]]
@@ -474,7 +490,7 @@ def is_smartquotable(node):
 def process_only_nodes(document, tags):
     # type: (nodes.Node, Tags) -> None
     """Filter ``only`` nodes which does not match *tags*."""
-    for node in document.traverse(addnodes.only):
+    for node in traverse_subclasses_of(addnodes.only, document):
         try:
             ret = tags.eval_condition(node['expr'])
         except Exception as err:

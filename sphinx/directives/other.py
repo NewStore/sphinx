@@ -325,7 +325,7 @@ class Only(SphinxDirective):
 
     def run(self):
         # type: () -> List[nodes.Node]
-        node = addnodes.only()
+        node = self.env.app.create_node(addnodes.only, sender=self)
         node.document = self.state.document
         set_source_info(self, node)
         node['expr'] = self.arguments[0]
