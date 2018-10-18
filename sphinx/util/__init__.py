@@ -44,7 +44,7 @@ from sphinx.util.osutil import (  # noqa
     SEP, os_path, relative_uri, ensuredir, walk, mtimes_of_files, movefile,
     copyfile, copytimes, make_filename, ustrftime)
 from sphinx.util.nodes import (   # noqa
-    nested_parse_with_titles, split_explicit_title, explicit_title_re,
+    nested_parse_with_titles, nested_parse_with_titles_and_toctree_support, split_explicit_title, explicit_title_re,
     caption_ref_re)
 from sphinx.util.matching import patfilter  # noqa
 

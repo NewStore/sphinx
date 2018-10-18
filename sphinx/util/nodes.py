@@ -321,6 +321,62 @@ def nested_parse_with_titles(state, content, node):
         state.memo.section_level = surrounding_section_level
 
 
+def nested_parse_with_titles_and_toctree_support(directive, node):
+    """Same as :py:func:`sphinx.util.nodes.nested_parse_with_titles` but try to handle nested
+    sections which should be raised higher up the doctree.
+
+    Sphinx uses this function in the directive
+    :py:class:`~sphinx.directives.other.Only` but can be reused in any
+    custom extension that intends to support nested sections while preventing docutils from injecting :py:class:`~docutils.nodes.system_message` with ``WARNING: Unexpected section title.``.
+
+    .. important:: this function is meant to be used within the ``def
+       run(self):`` method of Sphinx directives as it returns a result.
+
+    :param directive: an instance of :py:class:`SphinxDirective`
+    :param node: an instance of a node created by the directive
+    :returns: a list of nodes (which can be empty depending on tha case)
+    """
+    surrounding_title_styles = directive.state.memo.title_styles
+    surrounding_section_level = directive.state.memo.section_level
+
+    directive.state.memo.title_styles = []
+    directive.state.memo.section_level = 0
+
+    try:
+        directive.state.nested_parse(directive.content, directive.content_offset,
+                                node, match_titles=1)
+        title_styles = directive.state.memo.title_styles
+        if (not surrounding_title_styles or
+                not title_styles or
+                title_styles[0] not in surrounding_title_styles or
+                not directive.state.parent):
+            # No nested sections so no special handling needed.
+            return [node]
+        # Calculate the depths of the current and nested sections.
+        current_depth = 0
+        parent = directive.state.parent
+        while parent:
+            current_depth += 1
+            parent = parent.parent
+        current_depth -= 2
+        title_style = title_styles[0]
+        nested_depth = len(surrounding_title_styles)
+        if title_style in surrounding_title_styles:
+            nested_depth = surrounding_title_styles.index(title_style)
+        # Use these depths to determine where the nested sections should
+        # be placed in the doctree.
+        n_sects_to_raise = current_depth - nested_depth + 1
+        parent = directive.state.parent
+        for i in range(n_sects_to_raise):
+            if parent.parent:
+                parent = parent.parent
+        parent.append(node)
+        return []
+
+    finally:
+        directive.state.memo.title_styles = surrounding_title_styles
+        directive.state.memo.section_level = surrounding_section_level
+
 def clean_astext(node):
     # type: (nodes.Node) -> unicode
     """Like node.astext(), but ignore images."""
